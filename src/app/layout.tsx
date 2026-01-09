@@ -27,14 +27,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <head>
-        <Script src="/lasy-bridge.js" strategy="beforeInteractive" />
-      </head>
+    <html lang="pt-BR" suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <Script src="/lasy-bridge.js" strategy="beforeInteractive" />
       </body>
     </html>
   );
