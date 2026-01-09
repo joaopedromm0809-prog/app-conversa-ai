@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { ArrowLeft, TrendingUp, MessageSquare, Calendar, Target, Award, Clock, Zap } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
@@ -22,27 +21,14 @@ interface AnalyticsData {
   confidence_progress: number
 }
 
-type TimelineEventType = "match" | "message" | "meeting" | "achievement"
-type TimelineIconKey = "calendar" | "message" | "target" | "award" | "trending" | "zap" | "clock"
-
 interface TimelineEvent {
   id: string
-  type: TimelineEventType
+  type: "match" | "message" | "meeting" | "achievement"
   title: string
   description: string
   timestamp: string
-  iconKey: TimelineIconKey
+  icon: any
   color: string
-}
-
-const timelineIcons: Record<TimelineIconKey, LucideIcon> = {
-  calendar: Calendar,
-  message: MessageSquare,
-  target: Target,
-  award: Award,
-  trending: TrendingUp,
-  zap: Zap,
-  clock: Clock
 }
 
 export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
@@ -61,6 +47,7 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
   const [timeline, setTimeline] = useState<TimelineEvent[]>([])
 
   useEffect(() => {
+    // Carregar dados do localStorage
     const savedAnalytics = localStorage.getItem("conquista_pro_analytics")
     if (savedAnalytics) {
       setAnalytics(JSON.parse(savedAnalytics))
@@ -78,24 +65,24 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
     setAnalytics(newAnalytics)
     localStorage.setItem("conquista_pro_analytics", JSON.stringify(newAnalytics))
 
+    // Adicionar evento na timeline
     const newEvent: TimelineEvent = {
       id: Date.now().toString(),
       type: "meeting",
       title: "Encontro Marcado",
       description: "Você marcou um novo encontro!",
       timestamp: new Date().toISOString(),
-      iconKey: "calendar",
+      icon: Calendar,
       color: "green"
     }
-
     const newTimeline = [newEvent, ...timeline]
     setTimeline(newTimeline)
     localStorage.setItem("conquista_pro_timeline", JSON.stringify(newTimeline))
   }
 
   const getInsights = () => {
-    const insights: string[] = []
-
+    const insights = []
+    
     if (analytics.success_rate > 70) {
       insights.push("🔥 Você está arrasando! Taxa de sucesso acima de 70%")
     } else if (analytics.success_rate > 40) {
@@ -116,8 +103,8 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
   }
 
   const getRecommendations = () => {
-    const recommendations: string[] = []
-
+    const recommendations = []
+    
     if (analytics.messages_sent > analytics.responses_received * 2) {
       recommendations.push("Revise suas aberturas - você está enviando mais do que recebendo respostas")
     }
@@ -133,7 +120,7 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
     return recommendations
   }
 
-  const statCards: { label: string; value: string | number; icon: LucideIcon; color: string }[] = [
+  const statCards = [
     { label: "Total de Matches", value: analytics.total_matches, icon: Target, color: "blue" },
     { label: "Mensagens Enviadas", value: analytics.messages_sent, icon: MessageSquare, color: "purple" },
     { label: "Respostas Recebidas", value: analytics.responses_received, icon: TrendingUp, color: "green" },
@@ -156,6 +143,7 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button
           variant="ghost"
@@ -172,11 +160,12 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
         </div>
       </div>
 
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {statCards.map((stat, index) => {
           const Icon = stat.icon
           const colors = getColorClasses(stat.color)
-
+          
           return (
             <Card key={index} className={`bg-[#1A1A1A] border ${colors.border} p-6`}>
               <div className="flex items-start justify-between">
@@ -193,6 +182,7 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
         })}
       </div>
 
+      {/* Insights */}
       <Card className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border-blue-500/30 p-6 mb-6">
         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-blue-400" />
@@ -205,6 +195,7 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
         </div>
       </Card>
 
+      {/* Recommendations */}
       {getRecommendations().length > 0 && (
         <Card className="bg-[#1A1A1A] border-yellow-500/30 p-6 mb-6">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -219,6 +210,7 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
         </Card>
       )}
 
+      {/* Quick Actions */}
       <Card className="bg-[#1A1A1A] border-gray-800 p-6 mb-6">
         <h3 className="text-lg font-bold mb-4">Ações Rápidas</h3>
         <div className="flex flex-wrap gap-3">
@@ -247,12 +239,12 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
         </div>
       </Card>
 
+      {/* Timeline */}
       <Card className="bg-[#1A1A1A] border-gray-800 p-6">
         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
           <Clock className="w-5 h-5" />
           Linha do Tempo
         </h3>
-
         {timeline.length === 0 ? (
           <p className="text-gray-400 text-sm text-center py-8">
             Suas atividades aparecerão aqui
@@ -260,9 +252,9 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
         ) : (
           <div className="space-y-4">
             {timeline.slice(0, 10).map((event) => {
-              const Icon = timelineIcons[event.iconKey] || Clock
+              const Icon = event.icon
               const colors = getColorClasses(event.color)
-
+              
               return (
                 <div key={event.id} className="flex items-start gap-4">
                   <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center flex-shrink-0`}>
@@ -272,7 +264,7 @@ export default function AnalyticsScreen({ onBack }: AnalyticsScreenProps) {
                     <p className="font-medium">{event.title}</p>
                     <p className="text-sm text-gray-400">{event.description}</p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(event.timestamp).toLocaleString("pt-BR")}
+                      {new Date(event.timestamp).toLocaleString('pt-BR')}
                     </p>
                   </div>
                 </div>
